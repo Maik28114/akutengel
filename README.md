@@ -1,16 +1,53 @@
-# React + Vite
+# 🚑 AkutEngel - Erste Hilfe & Gesundheitstipps
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **Gesundheits-App für Notfälle und alltägliche Beschwerden**  
+> Schnelle, verständliche Anleitungen für alle Altersgruppen
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📋 Über das Projekt
 
-## React Compiler
+**AkutEngel** ist eine Web-App, die Menschen in Notfallsituationen und bei alltäglichen Gesundheitsfragen hilft. Die App bietet:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- ✅ **Schritt-für-Schritt Anleitungen** bei Verletzungen (Schürfwunde, Schnittwunde, etc.)
+- ✅ **Gesundheitstipps** bei Beschwerden (Kopfschmerzen, Fieber, etc.)
+- ✅ **Schnellzugriff auf Notruf** (112, Giftnotruf)
+- ✅ **Foto-Upload** zum Vergleich von Verletzungen
+- ✅ **Minimalistische UI** - einfach für jung und alt
 
-## Expanding the ESLint configuration
+**Projekttyp:** Weiterbildungsprojekt IT Engineer  
+**Entwicklungszeit:** 21 Tage (Solo)  
+**Status:** 🟢 In Entwicklung (Tag 1 abgeschlossen)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **React 18** - UI Framework
+- **Vite** - Build Tool (schneller als CRA)
+- **Tailwind CSS** - Utility-First CSS
+- **React Router v6** - Navigation
+
+### Backend (geplant ab Tag 3)
+- **Node.js + Express** - REST API
+- **MongoDB + Mongoose** - NoSQL Datenbank
+- **Multer + GridFS** - Bildupload
+- **Docker** - Containerisierung (optional)
+
+### Tools
+- **VS Code** - IDE
+- **Git/GitHub** - Versionskontrolle
+- **Postman** - API Testing
+
+---
+
+## 🚀 Installation & Setup
+
+### Voraussetzungen
+- Node.js v18+ ([Download](https://nodejs.org))
+- Git ([Download](https://git-scm.com))
+- MongoDB (lokal oder Atlas)
+
+### Projekt klonen
+```bash
