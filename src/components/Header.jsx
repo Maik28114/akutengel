@@ -26,17 +26,18 @@ function Header() {
           {/* ===== LOGO & TITEL (linke Seite) ===== */}
           <div className="flex items-center space-x-3">
             
-            {/* Emoji als temporäres Logo */}
-            {/* text-4xl = sehr groß (2.25rem = 36px) */}
-            {/* role="img" = sagt Screenreader: ist ein Bild */}
-            {/* aria-label = Text für Screenreader */}
-            <span 
-              className="text-4xl" 
-              role="img" 
-              aria-label="Krankenwagen"
-            >
-              🚑
-            </span>
+            {/* ===== DEIN LOGO (statt Emoji) ===== */}
+            {/* src="/logo.webp" = Pfad zur Datei in public/ */}
+            {/* Der Slash (/) am Anfang bedeutet: "Im public/ Ordner" */}
+            {/* alt = Alternativtext für Screenreader & wenn Bild nicht lädt */}
+            {/* w-14 = width 56px (3.5rem) */}
+            {/* h-14 = height 56px (3.5rem) */}
+            {/* object-contain = Bild behält Proportionen, wird nicht verzerrt */}
+            <img 
+              src="/logo.webp" 
+              alt="AkutEngel Logo - Engel mit Erste-Hilfe Herz" 
+              className="w-14 h-14 object-contain"
+            />
             
             {/* Titel-Bereich */}
             <div>
