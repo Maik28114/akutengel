@@ -19,9 +19,8 @@ db.createCollection('users', {
         },
         password: {
           bsonType: 'string',
-          minLength: 60,
-          maxLength: 60,
-          description: 'Muss ein bcrypt Hash sein (60 Zeichen)'
+          minLength: 6,
+          description: 'Passwort oder bcrypt Hash'
         },
         firstName: {
           bsonType: 'string',
