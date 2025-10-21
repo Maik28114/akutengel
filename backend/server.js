@@ -1,175 +1,452 @@
-// ===== IMPORTS =====
-// Express = Web Framework für Node.js
+require('dotenv').config();
 const express = require('express');
-// Mongoose = MongoDB Object Data Modeling
 const mongoose = require('mongoose');
-// Dotenv = Lädt Environment Variables aus .env Datei
-const dotenv = require('dotenv');
-// Cors = Erlaubt Cross-Origin Requests (Frontend → Backend)
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const morgan = require('morgan');
 
-// ===== KONFIGURATION =====
-// Lade Environment Variables aus .env Datei
-dotenv.config();
+// Models importieren
+const User = require('./models/User');
+const Injury = require('./models/Injury');
+const SearchHistory = require('./models/SearchHistory');
+const Feedback = require('./models/Feedback');
 
-// Erstelle Express App
 const app = express();
 
-// Port aus Environment Variable oder Default 3000
-const PORT = process.env.PORT || 3000;
+// ========================================
+// MIDDLEWARE
+// ========================================
 
-// ===== MIDDLEWARE =====
-// Middleware = Funktionen die vor den Routes ausgeführt werden
+// Security Headers
+app.use(helmet());
 
-// CORS aktivieren (erlaubt Requests vom Frontend)
-// origin: Frontend URL (localhost:5173 = Vite Dev Server)
+// CORS
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true
 }));
 
-// JSON Body Parser (damit wir JSON empfangen können)
-// Beispiel: POST Request mit JSON Daten im Body
-app.use(express.json());
+// Body Parser
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// URL-encoded Parser (für Formulardaten)
-app.use(express.urlencoded({ extended: true }));
+// MongoDB Sanitization (verhindert NoSQL Injection)
+app.use(mongoSanitize());
 
-// Request Logger (zeigt alle Requests in Console)
-// Hilfreich für Debugging
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
-  next(); // next() = weiter zur nächsten Middleware/Route
+// Logging
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+// Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 Minuten
+  max: 100, // Max 100 Requests pro IP
+  message: 'Zu viele Anfragen von dieser IP, bitte später nochmal versuchen.'
 });
+app.use('/api/', limiter);
 
-// ===== ROUTES (API ENDPUNKTE) =====
+// ========================================
+// MONGODB CONNECTION
+// ========================================
 
-// Test Route (um zu prüfen ob Server läuft)
-// GET http://localhost:3000/
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log('✅ MongoDB verbunden!');
+    console.log(`📦 Datenbank: ${mongoose.connection.db.databaseName}`);
+  })
+  .catch((err) => {
+    console.error('❌ MongoDB Verbindungsfehler:', err.message);
+    process.exit(1);
+  });
+
+// ========================================
+// ROUTES
+// ========================================
+
+// Root Route
 app.get('/', (req, res) => {
-  // res.json() = sendet JSON Response
-  res.json({ 
-    message: '🚑 AkutEngel API läuft!',
+  res.json({
+    message: '🚑 AkutEngel Backend API',
     version: '1.0.0',
+    status: 'running',
     endpoints: {
-      injuries: '/api/injuries',
-      search: '/api/search',
-      emergency: '/api/emergency'
+      health: '/api/health',
+      auth: {
+        register: 'POST /api/auth/register',
+        login: 'POST /api/auth/login'
+      },
+      injuries: {
+        getAll: 'GET /api/injuries',
+        getOne: 'GET /api/injuries/:id',
+        search: 'GET /api/injuries/search?q=...',
+        create: 'POST /api/injuries'
+      },
+      feedback: {
+        create: 'POST /api/feedback',
+        getByInjury: 'GET /api/feedback/injury/:injuryId'
+      }
     }
   });
 });
 
-// Health Check Route (prüft ob Server erreichbar ist)
-// GET http://localhost:3000/api/health
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date(),
-    uptime: process.uptime() // Wie lange läuft der Server?
-  });
+// Health Check
+app.get('/api/health', async (req, res) => {
+  try {
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      database: dbStatus,
+      environment: process.env.NODE_ENV,
+      uptime: process.uptime()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message
+    });
+  }
 });
 
-// ===== PLATZHALTER FÜR SPÄTERE ROUTES =====
-// Diese implementieren wir später (Tag 4-5)
+// ========================================
+// AUTH ROUTES
+// ========================================
 
-// GET /api/injuries - Alle Verletzungen abrufen
-app.get('/api/injuries', (req, res) => {
-  // TODO: Implementieren an Tag 4
-  res.json({ 
-    message: 'Injuries Endpoint - kommt an Tag 4',
-    data: []
-  });
+// Register
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password, firstName, lastName } = req.body;
+
+    // Validierung
+    if (!email || !password || !firstName || !lastName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bitte alle Felder ausfüllen'
+      });
+    }
+
+    // Check ob User schon existiert
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'E-Mail bereits registriert'
+      });
+    }
+
+    // User erstellen
+    const user = await User.create({
+      email,
+      password,
+      firstName,
+      lastName
+    });
+
+    // Token generieren
+    const token = user.generateAuthToken();
+
+    res.status(201).json({
+      success: true,
+      message: 'Registrierung erfolgreich',
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Register Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Fehler bei der Registrierung',
+      error: error.message
+    });
+  }
 });
 
-// GET /api/injuries/:id - Eine spezifische Verletzung
-app.get('/api/injuries/:id', (req, res) => {
-  // req.params.id = ID aus URL
-  const { id } = req.params;
-  
-  // TODO: Implementieren an Tag 4
-  res.json({ 
-    message: `Injury ${id} - kommt an Tag 4`,
-    id: id
-  });
+// Login
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validierung
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bitte E-Mail und Passwort eingeben'
+      });
+    }
+
+    // User finden (mit Passwort)
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Ungültige Anmeldedaten'
+      });
+    }
+
+    // Passwort prüfen
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Ungültige Anmeldedaten'
+      });
+    }
+
+    // Token generieren
+    const token = user.generateAuthToken();
+
+    res.json({
+      success: true,
+      message: 'Login erfolgreich',
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Login Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Fehler beim Login',
+      error: error.message
+    });
+  }
 });
 
-// POST /api/search - Suche nach Verletzungen/Beschwerden
-app.post('/api/search', (req, res) => {
-  // req.body = JSON Daten aus Request Body
-  const { query } = req.body;
-  
-  // TODO: Implementieren an Tag 5
-  res.json({ 
-    message: 'Search Endpoint - kommt an Tag 5',
-    query: query,
-    results: []
-  });
+// ========================================
+// INJURY ROUTES
+// ========================================
+
+// Alle Verletzungen abrufen
+app.get('/api/injuries', async (req, res) => {
+  try {
+    const { category, severity, limit = 20 } = req.query;
+    
+    const query = { isActive: true };
+    if (category) query.category = category;
+    if (severity) query.severity = severity;
+
+    const injuries = await Injury.find(query)
+      .sort({ averageRating: -1, viewCount: -1 })
+      .limit(parseInt(limit));
+
+    res.json({
+      success: true,
+      count: injuries.length,
+      data: injuries
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Fehler beim Abrufen der Verletzungen',
+      error: error.message
+    });
+  }
 });
 
-// ===== 404 HANDLER =====
-// Wenn keine Route matched, zeige 404
-// Muss NACH allen anderen Routes kommen!
+// Verletzung suchen - MUSS VOR :id Route kommen!
+app.get('/api/injuries/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+    
+    if (!q) {
+      return res.status(400).json({
+        success: false,
+        message: 'Suchbegriff fehlt'
+      });
+    }
+
+    // Einfache Regex-Suche in mehreren Feldern
+    const searchRegex = new RegExp(q, 'i'); // i = case-insensitive
+    
+    const injuries = await Injury.find({
+      isActive: true,
+      $or: [
+        { name: searchRegex },
+        { description: searchRegex },
+        { symptoms: searchRegex },
+        { keywords: searchRegex }
+      ]
+    }).sort({ averageRating: -1 });
+
+    res.json({
+      success: true,
+      count: injuries.length,
+      query: q,
+      data: injuries
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Fehler bei der Suche',
+      error: error.message
+    });
+  }
+});
+
+// Eine Verletzung abrufen
+app.get('/api/injuries/:id', async (req, res) => {
+  try {
+    const injury = await Injury.findById(req.params.id);
+    
+    if (!injury) {
+      return res.status(404).json({
+        success: false,
+        message: 'Verletzung nicht gefunden'
+      });
+    }
+
+    // View Count erhöhen
+    await injury.incrementViewCount();
+
+    res.json({
+      success: true,
+      data: injury
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Fehler beim Abrufen der Verletzung',
+      error: error.message
+    });
+  }
+});
+
+// Neue Verletzung erstellen (nur für Testing)
+app.post('/api/injuries', async (req, res) => {
+  try {
+    const injury = await Injury.create(req.body);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Verletzung erstellt',
+      data: injury
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Fehler beim Erstellen der Verletzung',
+      error: error.message
+    });
+  }
+});
+
+// ========================================
+// FEEDBACK ROUTES
+// ========================================
+
+// Feedback erstellen
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const { userId, injuryId, rating, comment, wasHelpful } = req.body;
+
+    // Validierung
+    if (!userId || !injuryId || !rating || wasHelpful === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Fehlende Pflichtfelder'
+      });
+    }
+
+    const feedback = await Feedback.create({
+      userId,
+      injuryId,
+      rating,
+      comment,
+      wasHelpful
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Feedback gespeichert',
+      data: feedback
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Du hast bereits Feedback zu dieser Verletzung gegeben'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Fehler beim Speichern des Feedbacks',
+      error: error.message
+    });
+  }
+});
+
+// Feedback für eine Verletzung abrufen
+app.get('/api/feedback/injury/:injuryId', async (req, res) => {
+  try {
+    const feedback = await Feedback.getByInjury(req.params.injuryId, {
+      limit: 20,
+      onlyVerified: false
+    });
+
+    const stats = await Feedback.getAverageRating(req.params.injuryId);
+
+    res.json({
+      success: true,
+      stats,
+      count: feedback.length,
+      data: feedback
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Fehler beim Abrufen des Feedbacks',
+      error: error.message
+    });
+  }
+});
+
+// ========================================
+// ERROR HANDLING
+// ========================================
+
+// 404 Handler
 app.use((req, res) => {
-  res.status(404).json({ 
-    error: 'Route nicht gefunden',
-    path: req.url,
-    method: req.method
+  res.status(404).json({
+    success: false,
+    message: 'Route nicht gefunden'
   });
 });
 
-// ===== ERROR HANDLER =====
-// Globaler Error Handler
-// Fängt alle Fehler in der App ab
+// Global Error Handler
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  res.status(500).json({ 
-    error: 'Interner Server Fehler',
-    message: err.message 
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Server Error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
 
-// ===== MONGODB VERBINDUNG =====
-// Verbinde mit MongoDB Datenbank
-const connectDB = async () => {
-  try {
-    // MongoDB Connection String aus .env Datei
-    // Falls nicht gesetzt, nutze lokale MongoDB
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/akutengel';
-    
-    // Verbinde mit MongoDB
-    await mongoose.connect(mongoURI);
-    
-    console.log('✅ MongoDB verbunden!');
-  } catch (error) {
-    console.error('❌ MongoDB Verbindungsfehler:', error.message);
-    // Beende Prozess bei Fehler
-    process.exit(1);
-  }
-};
+// ========================================
+// SERVER START
+// ========================================
 
-// ===== SERVER STARTEN =====
-// Funktion zum Starten des Servers
-const startServer = async () => {
-  // Erst Datenbank verbinden
-  await connectDB();
-  
-  // Dann Server starten
-  app.listen(PORT, () => {
-    console.log(`\n🚀 Server läuft auf http://localhost:${PORT}`);
-    console.log(`📊 API Docs: http://localhost:${PORT}/`);
-    console.log(`💚 Health Check: http://localhost:${PORT}/api/health`);
-    console.log(`\nDrücke Strg+C zum Beenden\n`);
-  });
-};
+const PORT = process.env.PORT || 5000;
 
-// Server starten
-startServer();
-
-// ===== GRACEFUL SHUTDOWN =====
-// Sauberes Herunterfahren bei Strg+C
-process.on('SIGINT', async () => {
-  console.log('\n\n⏹️  Server wird heruntergefahren...');
-  await mongoose.connection.close();
-  console.log('✅ MongoDB Verbindung geschlossen');
-  process.exit(0);
+app.listen(PORT, () => {
+  console.log('🚑 Server läuft auf http://localhost:' + PORT);
+  console.log('📊 API Docs: http://localhost:' + PORT + '/');
+  console.log('💚 Health Check: http://localhost:' + PORT + '/api/health');
+  console.log('\nDrücke Strg+C zum Beenden');
 });
