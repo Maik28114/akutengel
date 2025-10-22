@@ -16,7 +16,7 @@ const Feedback = require('./models/Feedback');
 const app = express();
 
 // ========================================
-// MIDDLEWARE
+// MIDDLEWARE !!!
 // ========================================
 
 // Security Headers
@@ -49,7 +49,7 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // ========================================
-// MONGODB CONNECTION
+// MONGODB CONNECTION !!!
 // ========================================
 
 mongoose.connect(process.env.MONGODB_URI)
@@ -63,7 +63,7 @@ mongoose.connect(process.env.MONGODB_URI)
   });
 
 // ========================================
-// ROUTES
+// ROUTES !!!
 // ========================================
 
 // Root Route
@@ -113,7 +113,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // ========================================
-// AUTH ROUTES
+// AUTH ROUTES !!!
 // ========================================
 
 // Register
@@ -228,7 +228,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // ========================================
-// INJURY ROUTES
+// INJURY ROUTES !!!
 // ========================================
 
 // Alle Verletzungen abrufen
@@ -346,7 +346,7 @@ app.post('/api/injuries', async (req, res) => {
 });
 
 // ========================================
-// FEEDBACK ROUTES
+// FEEDBACK ROUTES !!!
 // ========================================
 
 // Feedback erstellen
@@ -417,7 +417,7 @@ app.get('/api/feedback/injury/:injuryId', async (req, res) => {
 });
 
 // ========================================
-// ERROR HANDLING
+// ERROR HANDLING !!!
 // ========================================
 
 // 404 Handler
@@ -439,7 +439,7 @@ app.use((err, req, res, next) => {
 });
 
 // ========================================
-// SERVER START
+// SERVER START !!!
 // ========================================
 
 const PORT = process.env.PORT || 5000;
