@@ -36,7 +36,6 @@ function SearchPage() {
       {/* Platzhalter */}
       <div className="mt-6 bg-white rounded-lg shadow-md p-8 text-center">
         <p className="text-gray-500">
-          🚧 Suchfunktion kommt an Tag 5-6!
         </p>
         <p className="text-gray-400 text-sm mt-2">
           Hier werden später die Suchergebnisse angezeigt.

@@ -61,7 +61,6 @@ function Footer() {
             {/* text-gray-400 = mittleres Grau */}
             {/* text-sm = klein */}
             <p className="text-gray-400 text-sm">
-              © 2025 AkutEngel • Weiterbildungsprojekt IT Engineer
             </p>
           </div>
 

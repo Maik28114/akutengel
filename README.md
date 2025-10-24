@@ -44,14 +44,13 @@ Schnelle, verständliche Anleitungen für alle Altersgruppen
 ---
 
 ## 📁 Projekt-Struktur
-
 ```
 akutengel/
 ├── docker-compose.yml          # Docker Container Konfiguration
 ├── mongo-init.js               # MongoDB Initialisierung
 ├── README.md                   # Projekt-Dokumentation
 │
-├── backend/
+├── backend/                    # SERVER-SIDE (Port 5000)
 │   ├── Dockerfile
 │   ├── .dockerignore
 │   ├── .env.example           # Environment Variablen Beispiel
@@ -65,18 +64,39 @@ akutengel/
 │       ├── SearchHistory.js   # Suchverlauf Model
 │       └── Feedback.js        # Feedback Model
 │
-└── frontend/                   # React Frontend
-    ├── public/
-    ├── src/
-    │   ├── components/        # React Komponenten
-    │   ├── pages/             # Seiten
-    │   ├── services/          # API Services
-    │   └── utils/             # Hilfsfunktionen
-    ├── package.json
-    └── vite.config.js
+└── frontend/                   # CLIENT-SIDE (Port 5173)
+    ├── Dockerfile             # Frontend Container (optional)
+    ├── package.json           # React Dependencies
+    ├── vite.config.js         # Vite Konfiguration
+    ├── tailwind.config.js     # Tailwind CSS Config
+    ├── index.html             # HTML Entry Point
+    │
+    ├── public/                # Statische Assets
+    │   └── assets/            # Bilder, Icons
+    │
+    └── src/                   # React Source Code
+        ├── components/        # Wiederverwendbare UI-Komponenten
+        │   ├── Header.jsx
+        │   ├── Footer.jsx
+        │   ├── Layout.jsx
+        │   └── ScrollToTop.jsx
+        │
+        ├── pages/             # Routen-basierte Seiten
+        │   ├── HomePage.jsx
+        │   ├── SearchPage.jsx
+        │   ├── EmergencyPage.jsx
+        │   ├── UploadPage.jsx
+        │   └── NotFoundPage.jsx
+        │
+        ├── services/          # API Services
+        │   └── api.js
+        │
+        ├── utils/             # Hilfsfunktionen
+        │
+        ├── App.jsx            # Hauptkomponente
+        ├── App.css            # Global Styles
+        └── main.jsx           # React Entry Point
 ```
-
----
 
 ## 🚀 Installation & Setup
 
@@ -84,11 +104,9 @@ akutengel/
 
 - **Node.js v18+** ([Download](https://nodejs.org))
 - **Git** ([Download](https://git-scm.com))
-- **MongoDB** (lokal, später Atlas)
-- **Docker Desktop** 
+- **Docker Desktop** ([Download](https://www.docker.com/products/docker-desktop))
 
 ### Projekt klonen
-
 ```bash
 git clone https://github.com/Maik28114/akutengel.git
 cd akutengel
@@ -101,13 +119,11 @@ cd akutengel
 ### Schritt 1: Environment Variablen
 
 Erstelle eine `.env` Datei im `backend/` Ordner:
-
 ```bash
-cd backend/.env.example backend/.env
+cp backend/.env.example backend/.env
 ```
 
 **Inhalt der `.env` Datei:**
-
 ```env
 # MongoDB Connection (LOKAL mit Docker)
 MONGODB_URI=mongodb://admin:akutengel2025@mongodb:27017/akutengel?authSource=admin
@@ -125,9 +141,8 @@ FRONTEND_URL=http://localhost:5173
 ```
 
 ### Schritt 2: Docker Container starten
-
 ```bash
-# Container bauen und starten
+# Im Hauptverzeichnis (akutengel/)
 docker-compose up -d
 
 # Logs ansehen (optional)
@@ -135,20 +150,49 @@ docker-compose logs -f
 ```
 
 ### Schritt 3: Test-Daten einfügen
-
 ```bash
 # Seed Script im Container ausführen
 docker exec -it akutengel-backend node seedData.js
 ```
 
-### Schritt 4: Testen
+### Schritt 4: Frontend starten
+```bash
+# In neuem Terminal
+cd frontend
+npm install
+npm run dev
+```
 
-- **Backend:** http://localhost:5000
-- **API Docs:** http://localhost:5000/
+### Schritt 5: Testen
+
+- **Frontend:** http://localhost:5173
+- **Backend API:** http://localhost:5000
 - **Health Check:** http://localhost:5000/api/health
 - **Verletzungen:** http://localhost:5000/api/injuries
 
 ---
+
+## 💻 Manuelles Setup (ohne Docker)
+
+### Backend starten
+```bash
+# Terminal 1
+cd backend
+npm install
+node server.js
+# Läuft auf: http://localhost:5000
+```
+
+### Frontend starten
+```bash
+# Terminal 2
+cd frontend
+npm install
+npm run dev
+# Läuft auf: http://localhost:5173
+```
+
+**Hinweis:** MongoDB ist lokal installiert, später dann über MongoDB Atlas.
 
 ## 🐳 Docker Commands
 
@@ -314,16 +358,19 @@ http://localhost:5000/api/injuries/search?q=schnitt
 - [x] MongoDB Extension Setup
 - [x] Projekt-Dokumentation
 
-### 🚧 Phase 2: Frontend Integration (Tag 4-7) - IN ARBEIT
+### ✅ Phase 2: Frontend Integration (Tag 4-7) - IN ARBEIT
 
-- [ ] React Frontend mit Backend verbinden
-- [ ] API Service Layer erstellen
-- [ ] Login/Register UI
-- [ ] Verletzungs-Liste anzeigen
+- [x] React Frontend Struktur erstellt
+- [x] Frontend in separaten Ordner verschoben
+- [x] API Service Layer erstellen
+- [x] Home-Page mit Design
+- [x] Such-Funktion UI
+- [x] Notruf-Seite
+- [x] Responsive Design
 - [ ] Detail-Ansicht für Verletzungen
-- [ ] Such-Funktion UI
+- [ ] Login/Register UI implementieren
 - [ ] Filter UI (Kategorie, Schweregrad)
-- [ ] Responsive Design testen
+- [ ] Backend-Verbindung vollständig testen
 
 ### 📅 Phase 3: Advanced Features (Tag 8-14)
 
