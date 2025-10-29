@@ -1,74 +1,73 @@
-// React importieren
 import React from 'react'
+import { Link } from 'react-router-dom'
 
-// Footer-Komponente
-// Zeigt: Disclaimer + Copyright (immer unten)
 function Footer() {
   return (
-    // Footer = semantisches HTML
-    // bg-gray-800 = dunkler Hintergrund
-    // text-white = helle Schrift
-    // py-6 = padding vertikal 24px
-    // mt-auto = pushed to bottom (mit flex-parent)
-    <footer className="bg-gray-800 text-white py-6 mt-auto">
-      
-      {/* Container */}
-      <div className="container mx-auto px-4">
-        
-        {/* Zentrierter Text */}
-        <div className="text-center">
-          
-          {/* ===== WICHTIGER DISCLAIMER ===== */}
-          {/* Flexbox für Icon + Text */}
-          <div className="flex items-center justify-center mb-3">
-            {/* Warnung-Icon */}
-            <span className="text-2xl mr-2" role="img" aria-label="Warnung">
-              ⚠️
-            </span>
-            {/* Überschrift */}
-            {/* text-lg = groß (1.125rem = 18px) */}
-            {/* font-semibold = halb-fett */}
-            <p className="text-lg font-semibold">
-              WICHTIGER HINWEIS
-            </p>
-          </div>
-          
-          {/* Haupt-Disclaimer-Text */}
-          {/* text-gray-300 = helles Grau */}
-          {/* mb-4 = margin bottom 16px */}
-          {/* max-w-2xl = maximale Breite (42rem = 672px) */}
-          {/* mx-auto = zentriert */}
-          <p className="text-gray-300 mb-4 max-w-2xl mx-auto">
-            Diese App dient nur zur Information und ersetzt 
-            {/* <strong> = fett + weiß hervorheben */}
-            <strong className="text-white"> KEINE ärztliche Beratung </strong>
-            oder Behandlung!
-          </p>
-          
-          {/* Zweiter Disclaimer-Satz */}
-          <p className="text-gray-300 mb-4">
-            Bei ernsthaften oder anhaltenden Beschwerden immer einen Arzt aufsuchen!
-          </p>
-
-          {/* ===== TRENNLINIE ===== */}
-          {/* border-t = Rahmen oben */}
-          {/* border-gray-700 = dunkle Linie */}
-          {/* pt-4 = padding top 16px */}
-          {/* mt-4 = margin top 16px */}
-          <div className="border-t border-gray-700 pt-4 mt-4">
-            
-            {/* Copyright & Projekt-Info */}
-            {/* text-gray-400 = mittleres Grau */}
-            {/* text-sm = klein */}
+    <footer className="bg-gray-900 text-white py-12 px-6 mt-auto">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-4 gap-8 mb-8">
+          {/* Über uns */}
+          <div>
+            <h3 className="text-lg font-bold mb-4">AkutEngel</h3>
             <p className="text-gray-400 text-sm">
+              Schnelle Hilfe bei Verletzungen und Notfällen. Immer zur Stelle, wenn du uns brauchst.
             </p>
           </div>
 
+          {/* Links */}
+          <div>
+            <h3 className="text-lg font-bold mb-4">Navigation</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/" className="text-gray-400 hover:text-white transition-colors">
+                  Startseite
+                </Link>
+              </li>
+              <li>
+                <Link to="/search" className="text-gray-400 hover:text-white transition-colors">
+                  Verletzung suchen
+                </Link>
+              </li>
+              <li>
+                <Link to="/emergency" className="text-gray-400 hover:text-white transition-colors">
+                  Notruf
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Notrufnummern */}
+          <div>
+            <h3 className="text-lg font-bold mb-4">Notrufnummern</h3>
+            <ul className="space-y-2 text-sm">
+              <li className="text-gray-400">
+                <span className="text-emergency font-bold">112</span> - Feuerwehr & Rettung
+              </li>
+              <li className="text-gray-400">
+                <span className="text-emergency font-bold">110</span> - Polizei
+              </li>
+              <li className="text-gray-400">
+                <span className="text-emergency font-bold">116 117</span> - Ärztl. Bereitschaft
+              </li>
+            </ul>
+          </div>
+
+          {/* Rechtliches */}
+          <div>
+            <h3 className="text-lg font-bold mb-4">Rechtliches</h3>
+            <p className="text-gray-400 text-sm">
+              Diese App ersetzt keine ärztliche Beratung. Im Notfall immer 112 anrufen!
+            </p>
+          </div>
+        </div>
+
+        {/* Copyright */}
+        <div className="border-t border-gray-800 pt-8 text-center text-gray-400 text-sm">
+          <p>© 2025 AkutEngel. Alle Rechte vorbehalten.</p>
         </div>
       </div>
     </footer>
   )
 }
 
-// Exportieren
 export default Footer

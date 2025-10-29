@@ -1,52 +1,33 @@
-/* Tailwind Basis-Layer importieren */
-@tailwind base;        /* Reset + HTML Elemente */
-@tailwind components;  /* Wiederverwendbare Komponenten */
-@tailwind utilities;   /* Utility-Klassen */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Globale Styles (gelten überall) */
-* {
-  /* Box-sizing für einfacheres Layout */
-  box-sizing: border-box;
-  /* Entferne Browser-Standard Abstände */
-  margin: 0;
-  padding: 0;
-}
-
+/* Custom Styles */
 body {
-  /* System-Schriftart (sieht vertraut aus) */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 
-               'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-  /* Glattere Schrift-Darstellung */
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Heller Hintergrund */
-  background-color: #F9FAFB;
 }
 
-/* Alle Buttons touch-freundlich */
-button {
-  /* Mindesthöhe 60px (gut klickbar auch mit zitternden Händen) */
-  min-height: 60px;
-  /* Mindestbreite auch 60px */
-  min-width: 60px;
-  /* Cursor wird zu Hand-Symbol */
-  cursor: pointer;
-  /* Smooth Transitions für Hover-Effekte */
-  transition: all 0.2s ease-in-out;
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
 }
 
-/* Links sehen aus wie Buttons wenn in Buttons */
-a {
-  /* Entferne Unterstreichung */
-  text-decoration: none;
-  /* Erbe Textfarbe vom Parent */
-  color: inherit;
+/* Line clamp utility */
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
-/* Bilder responsive */
-img {
-  /* Nie breiter als Container */
-  max-width: 100%;
-  /* Höhe automatisch anpassen */
-  height: auto;
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }

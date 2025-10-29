@@ -64,7 +64,7 @@ db.createCollection('injuries', {
   validator: {
     $jsonSchema: {
       bsonType: 'object',
-      required: ['name', 'category', 'severity', 'symptoms', 'firstAidSteps'],
+      required: ['name', 'category', 'severity'],
       properties: {
         name: {
           bsonType: 'string',
@@ -78,48 +78,40 @@ db.createCollection('injuries', {
           enum: ['Leicht', 'Mittel', 'Schwer'],
           description: 'Schweregrad'
         },
+        firstAidSteps: {
+          bsonType: 'array',
+          items: { bsonType: 'string' },
+          description: 'Erste-Hilfe Schritte als einfache Strings'
+        },
         symptoms: {
           bsonType: 'array',
           items: { bsonType: 'string' },
           description: 'Liste der Symptome'
         },
-        firstAidSteps: {
-          bsonType: 'array',
-          items: {
-            bsonType: 'object',
-            required: ['step', 'description'],
-            properties: {
-              step: { bsonType: 'int' },
-              title: { bsonType: 'string' },
-              description: { bsonType: 'string' },
-              imageUrl: { bsonType: 'string' }
-            }
-          },
-          description: 'Erste-Hilfe Schritte'
-        },
         warnings: {
           bsonType: 'array',
-          items: { bsonType: 'string' }
+          items: { bsonType: 'string' },
+          description: 'Warnhinweise'
         },
-        when911: {
-          bsonType: 'string',
-          description: 'Wann 112 anrufen'
+        keywords: {
+          bsonType: 'array',
+          items: { bsonType: 'string' },
+          description: 'Suchbegriffe'
         }
       }
     }
   }
 });
 
-db.injuries.createIndex({ name: 'text' });
-db.injuries.createIndex({ category: 1 });
-db.injuries.createIndex({ severity: 1 });
+db.injuries.createIndex({ name: 'text', symptoms: 'text', keywords: 'text' });
+db.injuries.createIndex({ category: 1, severity: 1 });
 
 print('✅ Injuries Collection erstellt');
 
 // ========================================
 // 3. SEARCH_HISTORY COLLECTION
 // ========================================
-db.createCollection('searchhistory', {
+db.createCollection('searchhistories', {
   validator: {
     $jsonSchema: {
       bsonType: 'object',
@@ -150,15 +142,15 @@ db.createCollection('searchhistory', {
   }
 });
 
-db.searchhistory.createIndex({ userId: 1, timestamp: -1 });
-db.searchhistory.createIndex({ query: 'text' });
+db.searchhistories.createIndex({ userId: 1, timestamp: -1 });
+db.searchhistories.createIndex({ query: 'text' });
 
 print('✅ Search History Collection erstellt');
 
 // ========================================
 // 4. FEEDBACK COLLECTION
 // ========================================
-db.createCollection('feedback', {
+db.createCollection('feedbacks', {
   validator: {
     $jsonSchema: {
       bsonType: 'object',
@@ -179,8 +171,8 @@ db.createCollection('feedback', {
   }
 });
 
-db.feedback.createIndex({ injuryId: 1, rating: -1 });
-db.feedback.createIndex({ userId: 1 });
+db.feedbacks.createIndex({ injuryId: 1, rating: -1 });
+db.feedbacks.createIndex({ userId: 1 });
 
 print('✅ Feedback Collection erstellt');
 

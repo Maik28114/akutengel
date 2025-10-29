@@ -1,6 +1,9 @@
+version: '3.8'
+
 services:
   backend:
     build: ./backend
+    container_name: akutengel-backend-1
     ports:
       - "5000:5000"
     environment:
@@ -9,24 +12,14 @@ services:
       - NODE_ENV=development
     depends_on:
       - mongodb
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-
-  #frontend:  # NEU
-  #  build: ./frontend
-  #  ports:
-  #    - "5173:5173"
-  #  environment:
-  #    - VITE_API_URL=http://localhost:5000
-  #  volumes:
-  #    - ./frontend:/app
-  #    - /app/node_modules
-  #  depends_on:
-  #    - backend
+    networks:
+      - akutengel-network
+    restart: unless-stopped
+    # volumes ENTFERNT für Production-Build
 
   mongodb:
     image: mongo:7
+    container_name: akutengel-mongodb-1
     ports:
       - "27017:27017"
     environment:
@@ -35,7 +28,14 @@ services:
       - MONGO_INITDB_DATABASE=akutengel
     volumes:
       - mongo_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - akutengel-network
+    restart: unless-stopped
+
+networks:
+  akutengel-network:
+    driver: bridge
 
 volumes:
   mongo_data:
